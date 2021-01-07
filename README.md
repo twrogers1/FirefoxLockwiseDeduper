@@ -10,7 +10,7 @@ To use the script, export your Lockwise password .csv, drop the file in the same
 2. In the top-right corner, next to your user profile icon, click the `...`
 3. Choose **Export Logins...**
 4. Accept the warning
-   * Note that password will be stored in plain text - protect this file!
+   * Note that passwords will be stored in plain text - protect this file!
 5. Save the file. The default name is `logins.csv`, which the script is expecting. Save to the same directory as the `dedupe.py` file
 
 ## Supported Reports
