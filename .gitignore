@@ -1,3 +1,8 @@
+# don't upload password csv or report
+logins.csv
+LockwiseReport.txt
+
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

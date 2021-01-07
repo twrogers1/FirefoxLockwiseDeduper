@@ -1,0 +1,6 @@
+url,username,password
+duplicate.com,user1,dupePass1
+duplicate.com,user1,dupePass1
+blankPass.com,user2,
+blankUser.com,,pass
+invalidPass.com,user4,xxxxxxxxx
