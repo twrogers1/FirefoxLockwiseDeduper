@@ -1,5 +1,3 @@
-import glob
-import json
 import os
 import re
 from pathlib import Path
@@ -9,12 +7,18 @@ import pandas as pd
 
 def parse_domain(url: str):
     """ Attempt to parse the domain out of the url in order to create a clean string to group by to find duplicates. """
-    regex = r"^.*?([\w]+\.\w{2,})$"
-    try:
-        return re.search(regex, url).group(1).lower()
-    except AttributeError:
-        print("!! Unable to parse domain for url", url)
-        return ""
+    # first, try to match a website
+    match = re.search(r"^.*?([\w]+\.\w{2,})$", url)
+    if match:
+        return match.group(1).lower()
+
+    # then, try to match an IPv4 address, like a router's address
+    match = re.search(r"^(?:https?:\/\/)?((?:\d{1,3}\.?){4})", url)
+    if match:
+        return match.group(1)
+
+    print("!! Unable to parse domain for url", url)
+    return ""
 
 
 def validate_password(pw: str):
@@ -36,22 +40,28 @@ def validate_password(pw: str):
 
 
 def get_pw_filename(fname="logins"):
-    """ Attempt to find the logins.csv file in this python file's directory. Fetch the newest file created with 'login' in the name. """
-    this_file = Path(__file__)
-    glob_str = str(this_file.parent.joinpath(f"*{fname}*.csv"))
-    files = glob.glob(glob_str)
+    """ Attempt to find the logins.csv file in this python file's directory, downloads, or desktop. Fetch the newest file created with 'logins' in the name. """
+    # directories to search
+    this_dir = Path(__file__).parent
+    downloads = Path().home() / "Downloads"
+    desktop = Path().home() / "Desktop"
+    
+    files = []
+    for path in [this_dir, downloads, desktop]:
+        files.extend(path.glob(f"*{fname}*.csv"))
+
     return max(files, key=os.path.getctime) if len(files) > 0 else None
 
 
 if __name__ == "__main__":
-    os.chdir(Path(__file__).parent) # cd to the directory containing this .py file so the report can be written here.
+    os.chdir(Path(__file__).parent)  # cd to the directory containing this .py file so the report can be written here.
 
     pw_file = get_pw_filename()
     if not pw_file:
         raise SystemExit(f"!! Exiting. Unable to find a password export file in the directory {os.getcwd()}")
     
     df = pd.read_csv(pw_file)
-    df = df.loc[df["url"] != "chrome://FirefoxAccounts"] # ignore this row when performing checks
+    df = df.loc[df["url"] != "chrome://FirefoxAccounts"]  # ignore this row when performing checks
     df.fillna("", inplace=True)
     df["parsed_url"] = df["url"].apply(parse_domain)
     df["password_valid"] = df["password"].apply(validate_password)
@@ -63,7 +73,7 @@ if __name__ == "__main__":
     """ Begin region Checks """
     print("Beginning Password validation...")
     
-    messages = [] # create a queue of messages for writing to the report file later
+    messages = []  # create a queue of messages for writing to the report file later
     tabulate_kwargs = {
         "index": "never",
         "tablefmt": "pretty",
@@ -100,7 +110,6 @@ if __name__ == "__main__":
 
     print("Password validation complete!")
     """ End region Checks """
-
 
     if len(messages) > 0:
         print("Writing report to file...", end="")
